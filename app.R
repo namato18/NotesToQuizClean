@@ -5,6 +5,8 @@ library(shinybusy)
 library(shinyjs)
 library(purrr)
 library(shiny.router)
+library(uuid)
+library(shinyalert)
 
 
 possibly_readRDS = possibly(readRDS, otherwise = "ERROR")
@@ -31,357 +33,9 @@ main_app <- div( id = "mainDiv",
                  
                  
                  tags$head(
-                   tags$script(
-                     '
-      $(document).ready(function() {
-        console.log("loaded");
-        $(document).on("click", ".answer-toggle", function() {
-          console.log("hello");
-          $(this).closest(".answer-box").find(".answer").toggle();
-        });
-        
-        $("#submitAnswers").click(function() {
-          $(".answer").show();
-          var selectedValues = [];
-          $("input[type=radio]:checked").each(function() {
-            selectedValues.push($(this).val());
-          });
-          Shiny.setInputValue("selectedValues", selectedValues);
-          console.log("hi");
-        });
-        
-        Shiny.addCustomMessageHandler("showCheckmark", function(ind) {
-          $("#checkmark" + ind).show();
-          $("#x" + ind).hide();
-        });
-        
-        Shiny.addCustomMessageHandler("showX", function(ind) {
-          $("#x" + ind).show();
-          $("#checkmark" + ind).hide();
-        });
-        
-        function resetRadioButtons() {
-          $(\'input[type="radio"]\').prop(\'checked\', false);
-        }
-        
-        function resetAnswers() {
-          $(".answer").hide();
-          $(".checkmark").hide();
-          $(".x").hide();
-        }
-        
-        function filteredReset(ind) {
-          console.log(ind);
-          console.log(`.q_container${ind}`);
-          $(`.q_container${ind}`).hide();
-
-        }
-        
-        Shiny.addCustomMessageHandler("Reset", function(ind) {
-          console.log("reset pressed");
-          resetRadioButtons();
-          resetAnswers();
-        });
-        
-        Shiny.addCustomMessageHandler("filteredReset", function(ind) {
-          if(Array.isArray(ind)){
-              ind.forEach(function(index) {
-              console.log(index);
-              filteredReset(index);
-            });
-          } else {
-            filteredReset(ind);
-          }
-
-          resetRadioButtons();
-          resetAnswers();
-          
-        });
-        
-Shiny.addCustomMessageHandler("Test", function(ind) {
-    console.log("pressed");
-    const request_url = "https://n2q.nick-amato.com/create-checkout-session";
-    console.log(request_url);
-    fetch(request_url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            items: [
-                {id: 1, quantity: 1},
-            ]
-        })
-    }).then(function(res) {
-        if (res.ok) return res.json();
-        return res.json().then(function(json) {
-            return Promise.reject(json);
-        });
-    }).then(function({ url }) {
-        console.log(url)
-        window.location = url
-    }).catch(function(e) {
-        console.error(e.error);
-    });
-});
-
-
-        
-        
-        
-      });
-
-      '
+                   includeScript('funcs.js'),
+                   includeCSS('styles.css')
                    ),
-                   
-                   tags$style(HTML("
-    
-/* Reset default margin and padding */
-body, h1, h2, h3, p, ul, li {
-  margin: 0;
-  padding: 0;
-}
-
-
-
-/* Global styles */
-body {
-  background-color: #070a1c; /* Dark background */
-  font-family: Arial, sans-serif;
-  color: #fff; /* White text color */
-  height: 100vh;
-}
-
-.container {
-  max-width: 800px; /* Limit content width for better readability */
-  margin: 0 auto; /* Center content horizontally */
-  padding: 20px;
-}
-
-/* Well container */
-.well {
-  background: linear-gradient(to bottom left, #1f2640, #070a1c); /* Dark gradient */
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5); /* Dark shadow */
-}
-
-/* Login page */
-.login-page {
-  background-color: #070a1c; /* Dark background */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-/* Button style */
-.answer-toggle {
-  background: #FF6F61;
-  color: white;
-  font-size: 15px;
-  border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
-}
-.answer-toggle:hover {
-  background: #ff4136;
-}
-
-/* Question style */
-.question {
-  font-size: 20px;
-  color: white; /* White text color */
-  border-radius: 5px;
-  background: linear-gradient(to right, #1f2640, #070a1c); /* Dark gradient */
-  padding: 15px;
-  border: 1px solid #333; /* Dark border */
-}
-
-/* Separator style */
-.separator {
-  width: 100%;
-  border-top: 1px solid #333; /* Dark border */
-  margin: 20px 0;
-}
-
-/* Answer box and components */
-.answer-box {
-  display: flex;
-  align-items: center;
-}
-.answer,
-.checkmark,
-.x {
-  margin-right: 10px;
-}
-.checkmark,
-.x {
-  color: #2ECC40; /* Vibrant green */
-}
-.x {
-  color: #FF851B; /* Vibrant orange */
-}
-
-/* Title bar */
-.title-bar {
-  background: linear-gradient(to bottom, #1f2640, #070a1c); /* Dark gradient */
-  color: white; /* White text color */
-  padding: 10px;
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 20px;
-  border-radius: 5px;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5); /* Dark shadow */
-}
-
-/* Shiny text output */
-.shiny-text-output {
-  font-size: 16px;
-  line-height: 1.5;
-  margin-bottom: 10px;
-}
-
-  
-  
-          .login-box {
-            background-image: url('background.jpg');
-            background-size: 100% 100%;
-            background-color: black;
-            color: white;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
-            padding: 50px;
-            width: 300px;
-            height: 400px;
-            text-align: center;
-            margin: 0 auto;
-        }
-
-        .login-box h2 {
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-
-        .login-box input[type='text'],
-        .login-box input[type='password'] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-        .login-box button {
-            width: 100%;
-            padding: 10px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .login-box button:hover {
-            background-color: #0056b3;
-        }
-
-        .create-account-btn {
-            margin-top: 10px;
-            color: #007bff;
-            text-decoration: none;
-        }
-
-        .create-account-btn:hover {
-            text-decoration: underline;
-        }
-        
-        #status.shiny-text-output {
-          color: red;
-          font-size: 13px;
-
-        }
-        
-        #statusPaid.shiny-text-output {
-          color: red;
-          font-size: 13px;
-
-        }
-        
-        #sessionCounter.shiny-text-output {
-          color: white;
-        }
-        
-        .options {
-          color: white;
-        }
-        
-        #logoutButton {
-          background-color: #070a1c;
-          color: white;
-          padding: 10px 20px;
-          margin-right: 10px;
-        }
-        
-        .success-page {
-  background-color: #070a1c; /* Dark background */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-.success-box {
-    background-image: url('background.jpg');
-    background-size: 100% 100%;
-    background-color: black;
-    color: white;
-    padding:30px;
-    border-radius: 8px;
-    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
-    padding: 50px;
-    width: 300px;
-    height: 325px;
-    text-align: center;
-    margin: 0 auto;
-}
-
-.success-box h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-}
-
-.success-box button {
-  width: 100%;
-  padding: 10px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.success-box button:hover {
-  background-color: #0056b3;
-}
-        
-
-        
-
-
-
-  /* Additional CSS for specific elements can be added here */
-"))
-                   
-                   
-                   
-                 ),
                  
                  column(width = 12,
                         div(class = "title-bar",
@@ -454,23 +108,23 @@ login_page <- tags$div(class = "login-page",
                        ),
 )
 
-success_page <- tags$div(class = "success-page",
-                         tags$div(class = "success-box",
-                                  h2("Set Username & Password"),
-                                  tags$form(
-                                    textInput(inputId = "usernamePaid",label = NULL, placeholder = "Username..."),
-                                    textInput(inputId = "passwordPaid",label = NULL, placeholder = "Password..."),
-                                    actionButton(inputId = "toApp", "Take Me Into The App!", class = "btn-login")
-                                  ),
-                                  
-                                  
-                                  div(id = "statusDivPaid",
-                                      class = "status-text",
-                                      textOutput("statusPaid")
-                                  )
-                                  
-                         )
-)
+# success_page <- tags$div(class = "success-page",
+#                          tags$div(class = "success-box",
+#                                   h2("Set Username & Password"),
+#                                   tags$form(
+#                                     textInput(inputId = "usernamePaid",label = NULL, placeholder = "Username..."),
+#                                     textInput(inputId = "passwordPaid",label = NULL, placeholder = "Password..."),
+#                                     actionButton(inputId = "toApp", "Take Me Into The App!", class = "btn-login")
+#                                   ),
+#                                   
+#                                   
+#                                   div(id = "statusDivPaid",
+#                                       class = "status-text",
+#                                       textOutput("statusPaid")
+#                                   )
+#                                   
+#                          )
+# )
 
 
 source("Funcs.R")
@@ -481,8 +135,8 @@ source("Funcs.R")
 ui <- fluidPage(
   router_ui(
     route("/", login_page),
-    route("main", main_app),
-    route("success", success_page)
+    route("main", main_app)
+    # route("success", success_page)
   )
   
 )
@@ -746,12 +400,40 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$createAccountPaid, {
-    username = input$username
-    password = input$password
     
+    shinyalert(
+      title = "Enter Your Information",
+      html = TRUE,
+      text = tags$div(
+        textInput("usernamePaid", "Username:", placeholder = "Enter username..."),
+        passwordInput("passwordPaid", "Password:", placeholder = "Enter password..."),
+        textInput("emailPaid", "Email:", placeholder = "Enter email..."),
+        actionButton("submitButtonPaid", "Submit"),
+      ),
+      showCancelButton = TRUE,
+      showConfirmButton = FALSE,
+    )
+    # session$sendCustomMessage("Test", list("hi"))
     
-    session$sendCustomMessage("Test", list("hi"))
+  })
+  
+  observeEvent(input$submitButtonPaid,{
+    username = input$usernamePaid
+    password = input$usernamePaid
+    email = input$emailPaid
     
+    boneyard = readRDS("boneyard.rds")
+    uid = uuid::UUIDgenerate()
+    
+    tmp_df = data.frame(
+      uid = uid,
+      username = username,
+      password = password,
+      email = email
+    )
+    
+    boneyard = rbind(boneyard, tmp_df)
+    saveRDS(boneyard, "boneyard.rds")
   })
   
   observeEvent(input$toApp, {

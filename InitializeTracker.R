@@ -1,3 +1,5 @@
+## Initialize Tracker
+
 tracker = data.frame(
   username = character(),
   correct = numeric(),
@@ -5,3 +7,13 @@ tracker = data.frame(
 )
 
 saveRDS(tracker, "NotesToQuiz/tracker.rds")
+
+
+## Initialize Boneyard
+
+boneyard = data.frame(
+  uid = character(),
+  username = character(),
+  password = character(),
+  email = character(),
+)

@@ -4,7 +4,7 @@ library(stringr)
 library(httr)
 library(jsonlite)
 
-apiKey = readRDS("apiKey.rds")
+# apiKey = readRDS("apiKey.rds")
 
 
 

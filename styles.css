@@ -1,0 +1,235 @@
+/* Reset default margin and padding */
+body, h1, h2, h3, p, ul, li {
+  margin: 0;
+  padding: 0;
+}
+
+
+
+/* Global styles */
+body {
+  background-color: #070a1c; /* Dark background */
+  font-family: Arial, sans-serif;
+  color: #fff; /* White text color */
+  height: 100vh;
+}
+
+.container {
+  max-width: 800px; /* Limit content width for better readability */
+  margin: 0 auto; /* Center content horizontally */
+  padding: 20px;
+}
+
+/* Well container */
+.well {
+  background: linear-gradient(to bottom left, #1f2640, #070a1c); /* Dark gradient */
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Dark shadow */
+}
+
+/* Login page */
+.login-page {
+  background-color: #070a1c; /* Dark background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Button style */
+.answer-toggle {
+  background: #FF6F61;
+  color: white;
+  font-size: 15px;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+.answer-toggle:hover {
+  background: #ff4136;
+}
+
+/* Question style */
+.question {
+  font-size: 20px;
+  color: white; /* White text color */
+  border-radius: 5px;
+  background: linear-gradient(to right, #1f2640, #070a1c); /* Dark gradient */
+  padding: 15px;
+  border: 1px solid #333; /* Dark border */
+}
+
+/* Separator style */
+.separator {
+  width: 100%;
+  border-top: 1px solid #333; /* Dark border */
+  margin: 20px 0;
+}
+
+/* Answer box and components */
+.answer-box {
+  display: flex;
+  align-items: center;
+}
+.answer,
+.checkmark,
+.x {
+  margin-right: 10px;
+}
+.checkmark,
+.x {
+  color: #2ECC40; /* Vibrant green */
+}
+.x {
+  color: #FF851B; /* Vibrant orange */
+}
+
+/* Title bar */
+.title-bar {
+  background: linear-gradient(to bottom, #1f2640, #070a1c); /* Dark gradient */
+  color: white; /* White text color */
+  padding: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5); /* Dark shadow */
+}
+
+/* Shiny text output */
+.shiny-text-output {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+  
+  
+          .login-box {
+            background-image: url('background.jpg');
+            background-size: 100% 100%;
+            background-color: black;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            padding: 50px;
+            width: 300px;
+            height: 400px;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .login-box h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .login-box input[type='text'],
+        .login-box input[type='password'] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .login-box button:hover {
+            background-color: #0056b3;
+        }
+
+        .create-account-btn {
+            margin-top: 10px;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .create-account-btn:hover {
+            text-decoration: underline;
+        }
+        
+        #status.shiny-text-output {
+          color: red;
+          font-size: 13px;
+
+        }
+        
+        #statusPaid.shiny-text-output {
+          color: red;
+          font-size: 13px;
+
+        }
+        
+        #sessionCounter.shiny-text-output {
+          color: white;
+        }
+        
+        .options {
+          color: white;
+        }
+        
+        #logoutButton {
+          background-color: #070a1c;
+          color: white;
+          padding: 10px 20px;
+          margin-right: 10px;
+        }
+        
+        .success-page {
+  background-color: #070a1c; /* Dark background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.success-box {
+    background-image: url('background.jpg');
+    background-size: 100% 100%;
+    background-color: black;
+    color: white;
+    padding:30px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+    padding: 50px;
+    width: 300px;
+    height: 325px;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.success-box h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.success-box button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.success-box button:hover {
+  background-color: #0056b3;
+}
+        
