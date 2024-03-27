@@ -98,8 +98,8 @@ login_page <- tags$div(class = "login-page",
                            # tags$button(type = "submit", id = "loginButton", "Login"),
                            actionButton(inputId = "loginButton", "Login", class = "btn-login")
                          ),
-                         # actionButton(inputId = "createAccount", "Create Account", class = "create-account-btn"),
-                         actionButton(inputId = "createAccountPaid", "Create Account Paid", class = "create-account-btn"),
+                         actionButton(inputId = "createAccount", "Create Account", class = "create-account-btn"),
+                         # actionButton(inputId = "createAccountPaid", "Create Account Paid", class = "create-account-btn"),
                          div(id = "statusDiv",
                              class = "status-text",
                              textOutput("status")
