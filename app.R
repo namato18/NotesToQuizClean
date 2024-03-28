@@ -34,13 +34,26 @@ main_app <- div( id = "mainDiv",
                  
                  tags$head(
                    includeScript('funcs.js'),
-                   includeCSS('styles.css')
+                   includeCSS('styles.css'),
+                   tags$link(rel = "icon", type = "image/png", href = "logo.png")
                    ),
                  
                  column(width = 12,
                         div(class = "title-bar",
-                            "AI Notes to Quiz Generator",
-                            actionButton(inputId = "logoutButton","Logout"))),
+                            style = "display: flex; justify-content: space-between; align-items: center;",
+                            div(
+                              style = "margin: 0 auto;",
+                              "AI Notes to Quiz Generator",
+                              actionButton(inputId = "logoutButton", "Logout")
+                            ),
+                            div(
+                              img(src = "logo.png", height = 75, width = 75)
+                            )
+                        )
+                 ),
+                 
+                
+                 
                  sidebarLayout(
                    sidebarPanel(
                      # actionButton("answer-toggle", "Click Me"),
@@ -470,7 +483,7 @@ server <- function(input, output, session) {
   })
   
   output$userID = renderText({
-    rv$username
+    paste0("User: ",rv$username)
   })
   
   observeEvent(input$pdfInput, {
