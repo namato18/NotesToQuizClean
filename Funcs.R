@@ -4,12 +4,11 @@ library(stringr)
 library(httr)
 library(jsonlite)
 
-# apiKey = readRDS("apiKey.rds")
 
 
 
 # Set the path to your PDF file
-# pdf_filepath <- "D:/Downloads/lecture.pdf"
+# pdf_filepath <- "~/Downloads/lecture.pdf"
 # numQuestions <- 5
 
 chatHistory = c()
@@ -22,44 +21,46 @@ chatHistory = c()
 #################################################################
 
 GenerateQuiz <- function(pdf_filepath, numQuestions){
+  
 
-
-# Read text from the PDF
-pdf_text <- pdf_text(pdf_filepath)
-
-# Combine pages into a single character vector
-pdf_text_combined <- paste(pdf_text, collapse = "\n")
-
-# Clean the text (remove extra whitespaces, special characters, etc.)
-clean_text <- str_trim(pdf_text_combined) # Remove leading and trailing whitespaces
-clean_text <- str_squish(clean_text) # Remove extra whitespaces
-clean_text <- str_replace_all(clean_text, "[^[:graph:]]", " ") # Remove non-printable characters
-clean_text <- str_replace_all(clean_text, "\\s+", " ") # Remove extra whitespaces
-
-# Print the cleaned text
-# cat(clean_text)
-
-prompt <- paste0("Give me ",numQuestions," quiz questions (multiple choice with 5 options) for the following lecture information.",
-                 " Please do not return quetsions of the form 'which of these is not'. Also please include the answers after each questions choices: ", clean_text)
-
-
-chatHistory <<- append(chatHistory, list(list(role = "user", content = prompt)))
-response <- POST(
-  url = "https://api.openai.com/v1/chat/completions",
-  add_headers(Authorization = paste("Bearer", apiKey)),
-  content_type_json(),
-  encode = "json",
-  body = list(
-    model = "gpt-3.5-turbo",
-    temperature = 1,
-    messages = chatHistory
+  
+  
+  # Read text from the PDF
+  pdf_text <- pdf_text(pdf_filepath)
+  
+  # Combine pages into a single character vector
+  pdf_text_combined <- paste(pdf_text, collapse = "\n")
+  
+  # Clean the text (remove extra whitespaces, special characters, etc.)
+  clean_text <- str_trim(pdf_text_combined) # Remove leading and trailing whitespaces
+  clean_text <- str_squish(clean_text) # Remove extra whitespaces
+  clean_text <- str_replace_all(clean_text, "[^[:graph:]]", " ") # Remove non-printable characters
+  clean_text <- str_replace_all(clean_text, "\\s+", " ") # Remove extra whitespaces
+  
+  # Print the cleaned text
+  # cat(clean_text)
+  
+  prompt <- paste0("Give me ",numQuestions," quiz questions (multiple choice with 5 options) for the following lecture information.",
+                   " Please do not return quetsions of the form 'which of these is not'. Also please include the answers after each questions choices: ", clean_text)
+  
+  
+  chatHistory <<- append(chatHistory, list(list(role = "user", content = prompt)))
+  response <- POST(
+    url = "https://api.openai.com/v1/chat/completions",
+    add_headers(Authorization = paste("Bearer", apiKey)),
+    content_type_json(),
+    encode = "json",
+    body = list(
+      model = "gpt-3.5-turbo",
+      temperature = 1,
+      messages = chatHistory
+    )
   )
-)
-
-print(response)
-
-x = FormatResponseMC(response)
-return(x)
+  
+  print(response)
+  
+  x = FormatResponseMC(response)
+  return(x)
 }
 
 #################################################################
@@ -86,9 +87,9 @@ MakeHarder <- function(){
     )
   )
   
-x = FormatResponseMC(response)
-
-return(x)
+  x = FormatResponseMC(response)
+  
+  return(x)
 }
 
 #################################################################
@@ -165,7 +166,7 @@ FormatResponseMC <- function(response){
       answer_html <- paste0("<div class='answer-box'>",
                             "<span class='answer' style='display:none'>", answer, "</span>"
                             # "<button class='answer-toggle'>Toggle Answer</button>",
-                            )
+      )
       # Placeholders for checkmark and X icons
       checkmark_x_html <- paste0(
         "<span id='checkmark", i-1, "' class='checkmark' style='display: none;'><img src='check-nobg.png' width=15 alt='Checkmark'></span>",
@@ -226,4 +227,87 @@ NewSetOfQuestions <- function() {
   )
   
   x = FormatResponseMC(response)
+}
+
+#################################################################
+#################################################################
+#################################################################
+#################################################################
+#################################################################
+
+GenerateAnki <- function(pdf_filepath, numQuestions){
+
+  
+  
+  # Read text from the PDF
+  # chatHistory = c()
+  pdf_text <- pdf_text(pdf_filepath)
+  # numQuestions = 10
+  
+  
+  # Combine pages into a single character vector
+  pdf_text_combined <- paste(pdf_text, collapse = "\n")
+  
+  # Clean the text (remove extra whitespaces, special characters, etc.)
+  clean_text <- str_trim(pdf_text_combined) # Remove leading and trailing whitespaces
+  clean_text <- str_squish(clean_text) # Remove extra whitespaces
+  clean_text <- str_replace_all(clean_text, "[^[:graph:]]", " ") # Remove non-printable characters
+  clean_text <- str_replace_all(clean_text, "\\s+", " ") # Remove extra whitespaces
+  
+  # Print the cleaned text
+  # cat(clean_text)
+  
+  prompt <- paste0("I'd like you to return me an importable csv formatted response for ",numQuestions," standard Anki cards using text I will provide from a lecture. ",
+                   "Please only provide me the csv, no additional text or information. Also please end the response with a new line",
+                   "The purpose of these anki cards should be to improve my overall understanding of the concepts within the text.",
+                   " Please remember I need ",numQuestions, " cards and the response should be csf format. The lecture text is the following: ", clean_text)
+  
+  
+  chatHistory <<- append(chatHistory, list(list(role = "user", content = prompt)))
+  response <- POST(
+    url = "https://api.openai.com/v1/chat/completions",
+    add_headers(Authorization = paste("Bearer", apiKey)),
+    content_type_json(),
+    encode = "json",
+    body = list(
+      model = "gpt-3.5-turbo",
+      temperature = 0.1,
+      messages = chatHistory
+    )
+  )
+  
+  print(response)
+  
+  # Extract response from API
+  x <- fromJSON(rawToChar(response$content))
+  x2 <- x$choices
+  text.response <- x2$message$content[1]
+  
+  # text.response = LOOK
+  
+  print(text.response)
+  
+  front_back = str_match_all(string = text.response, pattern = "(.*)\\n")[[1]][,2]
+  split_front_back = lapply(front_back, strsplit, split = ",")
+  
+  fronts = sapply(split_front_back, function(x) {
+    x[[1]][1]
+  })
+  backs = sapply(split_front_back, function(x) {
+    back = x[[1]][2]
+    str_remove_all(back, '\\"')
+  })
+  
+  fronts = fronts[-c(1)]
+  backs = backs[-c(1)]
+  
+  df_fronts_backs = data.frame("Fronts" = fronts,
+                               "Backs" = backs)
+  
+  assign("LOOK", text.response, .GlobalEnv)
+  
+  chatHistory <<- append(chatHistory, list(list(role = "assistant", content = text.response)))
+  
+  
+  return(df_fronts_backs)
 }

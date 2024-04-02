@@ -7,7 +7,9 @@ library(purrr)
 library(shiny.router)
 library(uuid)
 library(shinyalert)
+library(DT)
 
+apiKey = readRDS("apiKey.rds")
 
 possibly_readRDS = possibly(readRDS, otherwise = "ERROR")
 credentials = possibly_readRDS("credentials.rds")
@@ -36,7 +38,7 @@ main_app <- div( id = "mainDiv",
                    includeScript('funcs.js'),
                    includeCSS('styles.css'),
                    tags$link(rel = "icon", type = "image/png", href = "logo.png")
-                   ),
+                 ),
                  
                  column(width = 12,
                         div(class = "title-bar",
@@ -52,7 +54,7 @@ main_app <- div( id = "mainDiv",
                         )
                  ),
                  
-                
+                 
                  
                  sidebarLayout(
                    sidebarPanel(
@@ -76,6 +78,7 @@ main_app <- div( id = "mainDiv",
                      br(),
                      br(),
                      fileInput("pdfInput", label = "Drop Your PDF Here:"),
+                     selectInput("selectType", label = "Select Type of Generation", choices = c("Quiz", "Anki Cards")),
                      sliderInput("numQuestions", label = "How Many Questions Would You Like to Generate?", min = 1, max = 25, value = 5),
                      actionButton("submit1", label = "Generate Quiz!", class = 'btn-primary'),
                      br(),
@@ -85,6 +88,10 @@ main_app <- div( id = "mainDiv",
                    
                    mainPanel(
                      
+                     # For ANKI
+                     dataTableOutput("ankiTable"),
+                     
+                     # For Quiz
                      textOutput("sessionCounter"),
                      htmlOutput("response"),
                      actionButton(inputId = "submitAnswers", label = "Submit Answers", class = "btn-primary"),
@@ -186,31 +193,44 @@ server <- function(input, output, session) {
   
   observeEvent(input$submit1, {
     
-    print(rv$username)
-    
-    shinyjs::show('submitAnswers')
-    shinyjs::show('reset')
-    
-    
-    
+    Type = input$selectType
     pdf_filepath = input$pdfInput$datapath
     numQuestions = input$numQuestions
-    output$response = renderUI({
-      print(pdf_filepath)
-      print(numQuestions)
-      response = GenerateQuiz(pdf_filepath, numQuestions)
-      rv$answer_letters = response$answer_letters
-      rv$original_answers = response$answer_letters
-      rv$answer_index = c(1:length(rv$original_answers))
-      HTML(response$formatted_text)
+    
+    if(Type == "Quiz"){
+      shinyjs::show('submitAnswers')
+      shinyjs::show('reset')
       
       
       
-      # rv$answer_letters = answer_letters
-      # rv$original_answers = answer_letters
-      # rv$answer_index = c(1:length(rv$original_answers))
-      # HTML(test_text)
-    })
+      
+      output$response = renderUI({
+        print(pdf_filepath)
+        print(numQuestions)
+        response = GenerateQuiz(pdf_filepath, numQuestions)
+        rv$answer_letters = response$answer_letters
+        rv$original_answers = response$answer_letters
+        rv$answer_index = c(1:length(rv$original_answers))
+        HTML(response$formatted_text)
+        
+        
+        
+        # rv$answer_letters = answer_letters
+        # rv$original_answers = answer_letters
+        # rv$answer_index = c(1:length(rv$original_answers))
+        # HTML(test_text)
+      })
+    }else{
+      print('ANKI PRESSED')
+      
+      response = GenerateAnki(pdf_filepath, numQuestions)
+      
+      output$ankiTable = renderDataTable(datatable(response, style = "bootstrap"))
+      
+      
+    }
+    
+    
   })
   
   observeEvent(input$harder, {
