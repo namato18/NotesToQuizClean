@@ -8,7 +8,7 @@ library(jsonlite)
 
 
 # Set the path to your PDF file
-# pdf_filepath <- "~/Downloads/lecture.pdf"
+# pdf_filepath <- "D:/Downloads/lecture.pdf"
 # numQuestions <- 5
 
 chatHistory = c()
@@ -20,7 +20,7 @@ chatHistory = c()
 #################################################################
 #################################################################
 
-GenerateQuiz <- function(pdf_filepath, numQuestions){
+GenerateQuiz <- function(pdf_filepath, numQuestions, apiKey){
   
 
   
@@ -235,7 +235,7 @@ NewSetOfQuestions <- function() {
 #################################################################
 #################################################################
 
-GenerateAnki <- function(pdf_filepath, numQuestions){
+GenerateAnki <- function(pdf_filepath, numQuestions, apiKey){
 
   
   
@@ -257,10 +257,11 @@ GenerateAnki <- function(pdf_filepath, numQuestions){
   # Print the cleaned text
   # cat(clean_text)
   
-  prompt <- paste0("I'd like you to return me an importable csv formatted response for ",numQuestions," standard Anki cards using text I will provide from a lecture. ",
-                   "Please only provide me the csv, no additional text or information. Also please end the response with a new line",
-                   "The purpose of these anki cards should be to improve my overall understanding of the concepts within the text.",
-                   " Please remember I need ",numQuestions, " cards and the response should be csf format. The lecture text is the following: ", clean_text)
+  prompt <- paste0("I'd like you to return me ",numQuestions," standard Anki cards using text I will provide from a lecture. ",
+                   "Please only return the data in the following format: 'Front of card:' (front of card info) followed by by a new line and then the Back of card info. ",
+                   "I'm studying for an exam and need to review, please make the front of each card in the form of a question. ",
+                   "At the very end of the entire response, please add a new blank line. Do not use any special characterse or italics. ",
+                   "The text to use to generate these cards is the following: ",clean_text)
   
   
   chatHistory <<- append(chatHistory, list(list(role = "user", content = prompt)))
@@ -285,26 +286,23 @@ GenerateAnki <- function(pdf_filepath, numQuestions){
   
   # text.response = LOOK
   
+  text.response = str_replace_all(string = text.response, pattern = "Front of card:\\n", replacement = "Front of card:")
+  text.response = str_replace_all(string = text.response, pattern = "Back of card:\\n", replacement = "Back of card:")
   print(text.response)
-  
-  front_back = str_match_all(string = text.response, pattern = "(.*)\\n")[[1]][,2]
-  split_front_back = lapply(front_back, strsplit, split = ",")
-  
-  fronts = sapply(split_front_back, function(x) {
-    x[[1]][1]
-  })
-  backs = sapply(split_front_back, function(x) {
-    back = x[[1]][2]
-    str_remove_all(back, '\\"')
-  })
-  
-  fronts = fronts[-c(1)]
-  backs = backs[-c(1)]
-  
-  df_fronts_backs = data.frame("Fronts" = fronts,
-                               "Backs" = backs)
-  
+
   assign("LOOK", text.response, .GlobalEnv)
+  
+  front_responses = str_match_all(string = text.response, pattern = "Front of card:(.*)\\n")[[1]][,2]
+  back_responses = str_match_all(string = text.response, pattern = "Back.*?:(.*)\\n")[[1]][,2]
+  
+  front_responses = trimws(str_remove_all(string = front_responses, pattern = '\\"'))
+  back_responses = trimws(str_remove_all(string = back_responses, pattern = '\\"'))
+
+  
+  df_fronts_backs = data.frame("Fronts" = front_responses,
+                               "Backs" = back_responses)
+  
+  
   
   chatHistory <<- append(chatHistory, list(list(role = "assistant", content = text.response)))
   

@@ -207,7 +207,7 @@ server <- function(input, output, session) {
       output$response = renderUI({
         print(pdf_filepath)
         print(numQuestions)
-        response = GenerateQuiz(pdf_filepath, numQuestions)
+        response = GenerateQuiz(pdf_filepath, numQuestions, apiKey)
         rv$answer_letters = response$answer_letters
         rv$original_answers = response$answer_letters
         rv$answer_index = c(1:length(rv$original_answers))
@@ -223,7 +223,7 @@ server <- function(input, output, session) {
     }else{
       print('ANKI PRESSED')
       
-      response = GenerateAnki(pdf_filepath, numQuestions)
+      response = GenerateAnki(pdf_filepath, numQuestions, apiKey)
       
       output$ankiTable = renderDataTable(datatable(response, style = "bootstrap"))
       
