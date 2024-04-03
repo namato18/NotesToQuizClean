@@ -4,3 +4,6 @@
 .Ruserdata
 apiKey.rds
 .env
+access_key.rds
+secret_key.rds
+InitializeFeedback.R

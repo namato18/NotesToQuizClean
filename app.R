@@ -8,9 +8,24 @@ library(shiny.router)
 library(uuid)
 library(shinyalert)
 library(DT)
+library(aws.s3)
+
 
 apiKey = readRDS("apiKey.rds")
+access_key = readRDS('access_key.rds')
+secret_key = readRDS("secret_key.rds")
 
+Sys.setenv(
+  "AWS_ACCESS_KEY_ID" = access_key,
+  "AWS_SECRET_ACCESS_KEY" = secret_key,
+  "AWS_DEFAULT_REGION" = "us-east-1"
+)
+# Sys.getenv()
+
+
+
+possibly_s3readRDS = possibly(s3readRDS, otherwise = "ERROR")
+possibly_s3read_using = possibly(s3read_using, otherwise = 'ERROR')
 possibly_readRDS = possibly(readRDS, otherwise = "ERROR")
 credentials = possibly_readRDS("credentials.rds")
 tracker = readRDS("tracker.rds")
@@ -194,8 +209,10 @@ server <- function(input, output, session) {
                       tracker = tracker,
                       username = character(),
                       running_total = 0,
-                      ankiTable = character())
+                      ankiTable = character(),
+                      feedback = character())
   
+
   
   observeEvent(input$submit1, {
     shinyjs::show('harder')
@@ -478,7 +495,30 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$shinyalert, {
-    print(input$feedbackInput)
+    
+    if(input$feedbackInput != ""){
+      print(input$feedbackInput)
+      
+      rv$feedback = s3readRDS(object = "feedback.rds", bucket = "notes2quiz/Feedback")
+      # x = s3readRDS(object = "feedback.rds", bucket = "notes2quiz/Feedback")
+      
+      tmp.df = data.frame(
+        "User" = rv$username,
+        "Date" = Sys.time(),
+        "Feedback" = input$feedbackInput
+      )
+      
+      tmp.df = rbind(rv$feedback, tmp.df)
+      
+      saveRDS(tmp.df, file = paste0(tempdir(), "/feedback.rds"))
+      
+      put_object(
+        file = file.path(tempdir(), "feedback.rds"),
+        object = paste0("feedback.rds"),
+        bucket = paste0("notes2quiz/Feedback")
+      )
+    }
+    
   })
   
   observeEvent(input$createAccountPaid, {
