@@ -21,8 +21,8 @@ chatHistory = c()
 #################################################################
 
 GenerateQuiz <- function(pdf_filepath, numQuestions, apiKey){
-  
 
+  
   
   
   # Read text from the PDF
@@ -41,7 +41,8 @@ GenerateQuiz <- function(pdf_filepath, numQuestions, apiKey){
   # cat(clean_text)
   
   prompt <- paste0("Give me ",numQuestions," quiz questions (multiple choice with 5 options) for the following lecture information.",
-                   " Please do not return quetsions of the form 'which of these is not'. Also please include the answers after each questions choices: ", clean_text)
+                   " Please do not return quetsions of the form 'which of these is not'.",
+                   " Also please include the answers after each questions choices: ", clean_text)
   
   
   chatHistory <<- append(chatHistory, list(list(role = "user", content = prompt)))
@@ -70,7 +71,7 @@ GenerateQuiz <- function(pdf_filepath, numQuestions, apiKey){
 #################################################################
 
 
-MakeHarder <- function(){
+MakeHarder <- function(apiKey){
   prompt = "Now make the quiz harder. Return the questions in the same format"
   
   chatHistory = append(chatHistory, list(list(role = "user", content = prompt)))
@@ -236,8 +237,6 @@ NewSetOfQuestions <- function() {
 #################################################################
 
 GenerateAnki <- function(pdf_filepath, numQuestions, apiKey){
-
-  
   
   # Read text from the PDF
   # chatHistory = c()
@@ -283,13 +282,14 @@ GenerateAnki <- function(pdf_filepath, numQuestions, apiKey){
   x <- fromJSON(rawToChar(response$content))
   x2 <- x$choices
   text.response <- x2$message$content[1]
+  text.response = paste0(text.response, "\n")
   
   # text.response = LOOK
   
   text.response = str_replace_all(string = text.response, pattern = "Front of card:\\n", replacement = "Front of card:")
   text.response = str_replace_all(string = text.response, pattern = "Back of card:\\n", replacement = "Back of card:")
   print(text.response)
-
+  
   assign("LOOK", text.response, .GlobalEnv)
   
   front_responses = str_match_all(string = text.response, pattern = "Front of card:(.*)\\n")[[1]][,2]
@@ -297,7 +297,7 @@ GenerateAnki <- function(pdf_filepath, numQuestions, apiKey){
   
   front_responses = trimws(str_remove_all(string = front_responses, pattern = '\\"'))
   back_responses = trimws(str_remove_all(string = back_responses, pattern = '\\"'))
-
+  
   
   df_fronts_backs = data.frame("Fronts" = front_responses,
                                "Backs" = back_responses)
@@ -305,6 +305,63 @@ GenerateAnki <- function(pdf_filepath, numQuestions, apiKey){
   
   
   chatHistory <<- append(chatHistory, list(list(role = "assistant", content = text.response)))
+  
+  
+  return(df_fronts_backs)
+}
+
+#################################################################
+#################################################################
+#################################################################
+#################################################################
+#################################################################
+
+MakeHarderAnki <- function(apiKey){
+  prompt = "Now make the anki cards harder. Return the questions in the same format"
+  
+  chatHistory = append(chatHistory, list(list(role = "user", content = prompt)))
+  
+  response <- POST(
+    url = "https://api.openai.com/v1/chat/completions",
+    add_headers(Authorization = paste("Bearer", apiKey)),
+    content_type_json(),
+    encode = "json",
+    body = list(
+      model = "gpt-3.5-turbo",
+      temperature = 1,
+      messages = chatHistory
+    )
+  )
+  
+  # Extract response from API
+  x <- fromJSON(rawToChar(response$content))
+  x2 <- x$choices
+  text.response <- x2$message$content[1]
+  text.response = paste0(text.response, "\n")
+  
+  # text.response = LOOK
+  
+  text.response = str_replace_all(string = text.response, pattern = "Front of card:\\n", replacement = "Front of card:")
+  text.response = str_replace_all(string = text.response, pattern = "Back of card:\\n", replacement = "Back of card:")
+  print(text.response)
+  
+  assign("LOOK", text.response, .GlobalEnv)
+  
+  front_responses = str_match_all(string = text.response, pattern = "Front of card:(.*)\\n")[[1]][,2]
+  back_responses = str_match_all(string = text.response, pattern = "Back.*?:(.*)\\n")[[1]][,2]
+  
+  front_responses = trimws(str_remove_all(string = front_responses, pattern = '\\"'))
+  back_responses = trimws(str_remove_all(string = back_responses, pattern = '\\"'))
+  
+  
+  df_fronts_backs = data.frame("Fronts" = front_responses,
+                               "Backs" = back_responses)
+  
+  
+  
+  chatHistory <<- append(chatHistory, list(list(role = "assistant", content = text.response)))
+  
+  
   
   
   return(df_fronts_backs)

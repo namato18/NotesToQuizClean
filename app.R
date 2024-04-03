@@ -78,9 +78,10 @@ main_app <- div( id = "mainDiv",
                      br(),
                      br(),
                      fileInput("pdfInput", label = "Drop Your PDF Here:"),
-                     selectInput("selectType", label = "Select Type of Generation", choices = c("Quiz", "Anki Cards")),
+                     selectInput("selectType", label = "Select Type of Generation", choices = list("Quiz" = "Quiz", "Anki Cards" = "Anki")),
                      sliderInput("numQuestions", label = "How Many Questions Would You Like to Generate?", min = 1, max = 25, value = 5),
-                     actionButton("submit1", label = "Generate Quiz!", class = 'btn-primary'),
+                     # selectInput("difficulty", label = "Select a Difficulty", choices = c("Easy","Medium","Hard")),
+                     actionButton("submit1", label = "Generate!", class = 'btn-primary'),
                      br(),
                      br(),
                      textOutput("scoreSuggestion")
@@ -89,6 +90,7 @@ main_app <- div( id = "mainDiv",
                    mainPanel(
                      
                      # For ANKI
+                     downloadButton("downloadData", "Download CSV"),
                      dataTableOutput("ankiTable"),
                      
                      # For Quiz
@@ -96,9 +98,9 @@ main_app <- div( id = "mainDiv",
                      htmlOutput("response"),
                      actionButton(inputId = "submitAnswers", label = "Submit Answers", class = "btn-primary"),
                      actionButton("reset", label = "Reset Quiz", class = "btn-primary"),
-                     actionButton("filteredReset", label = "Reset Quiz & Remove Questions You Got Right", class = "btn-primary"),
+                     actionButton("filteredReset", label = "Reset & Remove Questions You Got Right", class = "btn-primary"),
                      actionButton("fresh", label = "Fresh Set of Questions (Same Difficulty)", class = "btn-primary"),
-                     actionButton("harder", label = "Make Quiz Harder", class = 'btn-primary'),
+                     actionButton("harder", label = "Make Harder", class = 'btn-primary'),
                      
                      
                      
@@ -167,13 +169,15 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   router_server()
   
-  
-  
+  shinyjs::hide("sessionCounter")
+  shinyjs::hide('downloadData')
   shinyjs::hide('submitAnswers')
   shinyjs::hide('reset')
   shinyjs::hide('harder')
   shinyjs::hide('fresh')
   shinyjs::hide('filteredReset')
+  shinyjs::hide("response")
+  shinyjs::hide("ankiTable")
   
   options(shiny.maxRequestSize=300*1024^2)
   
@@ -188,16 +192,23 @@ server <- function(input, output, session) {
                       credentials = credentials,
                       tracker = tracker,
                       username = character(),
-                      running_total = 0)
+                      running_total = 0,
+                      ankiTable = character())
   
   
   observeEvent(input$submit1, {
+    shinyjs::show('harder')
     
     Type = input$selectType
     pdf_filepath = input$pdfInput$datapath
     numQuestions = input$numQuestions
-    
+
     if(Type == "Quiz"){
+      shinyjs::hide('ankiTable')
+      shinyjs::hide("downloadData")
+      
+      shinyjs::show("response")
+      shinyjs::show("sessionCounter")
       shinyjs::show('submitAnswers')
       shinyjs::show('reset')
       
@@ -222,8 +233,18 @@ server <- function(input, output, session) {
       })
     }else{
       print('ANKI PRESSED')
+      shinyjs::hide("sessionCounter")
+      shinyjs::hide('submitAnswers')
+      shinyjs::hide('reset')
+      shinyjs::hide('fresh')
+      shinyjs::hide('filteredReset')
+      shinyjs::hide("response")
+      
+      shinyjs::show("ankiTable")
+      shinyjs::show("downloadData")
       
       response = GenerateAnki(pdf_filepath, numQuestions, apiKey)
+      rv$ankiTable = response
       
       output$ankiTable = renderDataTable(datatable(response, style = "bootstrap"))
       
@@ -234,15 +255,32 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$harder, {
-    shinyjs::hide('harder')
-    shinyjs::hide('fresh')
-    shinyjs::hide('filteredReset')
     
-    output$response = renderUI({
-      response = MakeHarder()
-      rv$answer_letters = response$answer_letters
-      HTML(response$formatted_text)
-    })
+    if(input$selectType == "Quiz"){
+      shinyjs::hide('harder')
+      shinyjs::hide('fresh')
+      shinyjs::hide('filteredReset')
+      
+      output$response = renderUI({
+        response = MakeHarder(apiKey)
+        rv$answer_letters = response$answer_letters
+        HTML(response$formatted_text)
+      })
+    }
+    if(input$selectType == "Anki"){
+      shinyjs::hide('fresh')
+      shinyjs::hide('filteredReset')
+      
+      
+      response = MakeHarderAnki(apiKey)
+      rv$ankiTable = response
+      
+      output$ankiTable = renderDataTable(datatable(response, style = "bootstrap"))
+      
+      
+    }
+    
+    
   })
   
   rv$round_total = 0
@@ -511,6 +549,15 @@ server <- function(input, output, session) {
       stop("USER NOT FOUND")
     }
   })
+  
+  output$downloadData <- downloadHandler(
+    filename = function() { 
+      paste("dataset-", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write.table(rv$ankiTable, file, row.names = FALSE, col.names = FALSE, sep = ",")
+    })
+  
   
   
   
