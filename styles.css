@@ -189,6 +189,12 @@ body {
           padding: 10px 20px;
           margin-right: 10px;
         }
+        #feedback {
+          background-color: #070a1c;
+          color: white;
+          padding: 10px 20px;
+          margin-right: 10px;
+        }
         
         .success-page {
   background-color: #070a1c; /* Dark background */

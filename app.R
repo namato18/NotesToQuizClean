@@ -46,7 +46,8 @@ main_app <- div( id = "mainDiv",
                             div(
                               style = "margin: 0 auto;",
                               "AI Notes to Quiz Generator",
-                              actionButton(inputId = "logoutButton", "Logout")
+                              actionButton(inputId = "logoutButton", "Logout"),
+                              actionButton(inputId = "feedback", "Feedback")
                             ),
                             div(
                               img(src = "logo.png", height = 75, width = 75)
@@ -202,7 +203,7 @@ server <- function(input, output, session) {
     Type = input$selectType
     pdf_filepath = input$pdfInput$datapath
     numQuestions = input$numQuestions
-
+    
     if(Type == "Quiz"){
       shinyjs::hide('ankiTable')
       shinyjs::hide("downloadData")
@@ -468,6 +469,16 @@ server <- function(input, output, session) {
   
   observeEvent(input$logoutButton ,{
     change_page("/")
+  })
+  
+  observeEvent(input$feedback, {
+    shinyalert(html = TRUE, text = tagList(
+      textAreaInput(inputId = "feedbackInput", label = "Enter your feedback or suggestion here:", placeholder = "feedback...")
+    ))
+  })
+  
+  observeEvent(input$shinyalert, {
+    print(input$feedbackInput)
   })
   
   observeEvent(input$createAccountPaid, {
