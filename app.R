@@ -46,7 +46,7 @@ main_app <- div( id = "mainDiv",
                  useShinyjs(),
                  
                  # theme = shinytheme("darkly"),
-                 add_busy_spinner(spin = "fading-circle", color = "white", height = "60px", width = "60px"),
+                 add_busy_spinner(spin = "fading-circle", color = "white", height = "80px", width = "80px", position = "bottom-right"),
                  
                  
                  tags$head(
@@ -106,17 +106,22 @@ main_app <- div( id = "mainDiv",
                    mainPanel(
                      
                      # For ANKI
-                     downloadButton("downloadData", "Download CSV"),
+                     downloadButton("downloadData", "Download CSV", class = 'btn-primary'),
+                     br(),
+                     br(),
                      dataTableOutput("ankiTable"),
                      
                      # For Quiz
                      textOutput("sessionCounter"),
                      htmlOutput("response"),
-                     actionButton(inputId = "submitAnswers", label = "Submit Answers", class = "btn-primary"),
-                     actionButton("reset", label = "Reset Quiz", class = "btn-primary"),
-                     actionButton("filteredReset", label = "Reset & Remove Questions You Got Right", class = "btn-primary"),
-                     actionButton("fresh", label = "Fresh Set of Questions (Same Difficulty)", class = "btn-primary"),
-                     actionButton("harder", label = "Make Harder", class = 'btn-primary'),
+                     div(class = "button-container",
+                         actionButton(inputId = "submitAnswers", label = "Submit Answers", class = "btn-primary"),
+                         actionButton("reset", label = "Reset Quiz", class = "btn-primary"),
+                         actionButton("filteredReset", label = "Reset & Remove Questions You Got Right", class = "btn-primary"),
+                         actionButton("fresh", label = "Fresh Set of Questions (Same Difficulty)", class = "btn-primary"),
+                         actionButton("harder", label = "Make Harder", class = 'btn-primary'),
+                     )
+                     
                      
                      
                      
@@ -124,27 +129,34 @@ main_app <- div( id = "mainDiv",
                  )
 )
 
-login_page <- tags$div(class = "login-page",
-                       tags$div(
-                         class = "login-box",
-                         h2("AI Notes to Quiz Login"),
-                         tags$form(
-                           textInput(inputId = "username",label = NULL, placeholder = "Username..."),
-                           textInput(inputId = "password",label = NULL, placeholder = "Password..."),
-                           # tags$input(type = "text", placeholder = "Username", required = "required"),
-                           # tags$input(type = "password", placeholder = "Password", required = "required"),
-                           # tags$button(type = "submit", id = "loginButton", "Login"),
-                           actionButton(inputId = "loginButton", "Login", class = "btn-login")
-                         ),
-                         actionButton(inputId = "createAccount", "Create Account", class = "create-account-btn"),
-                         # actionButton(inputId = "createAccountPaid", "Create Account Paid", class = "create-account-btn"),
-                         div(id = "statusDiv",
-                             class = "status-text",
-                             textOutput("status")
-                             
-                         )
-                       ),
-)
+login_page <- 
+  tags$div(class = "login-page",
+           tags$div(class = "stars"),
+           tags$div(class = "login-box",
+                    h2("AI Notes to Quiz Login"),
+                    tags$form(
+                      textInput(inputId = "username",label = NULL, placeholder = "Username..."),
+                      textInput(inputId = "password",label = NULL, placeholder = "Password..."),
+                      # tags$input(type = "text", placeholder = "Username", required = "required"),
+                      # tags$input(type = "password", placeholder = "Password", required = "required"),
+                      # tags$button(type = "submit", id = "loginButton", "Login"),
+                      actionButton(inputId = "loginButton", "Login", class = "btn-login")
+                    ),
+                    actionButton(inputId = "createAccount", "Create Account", class = "create-account-btn"),
+                    # actionButton(inputId = "createAccountPaid", "Create Account Paid", class = "create-account-btn"),
+                    div(id = "statusDiv",
+                        class = "status-text",
+                        textOutput("status")
+                        
+                    )
+           )
+           
+           
+           
+  )
+
+
+
 
 # success_page <- tags$div(class = "success-page",
 #                          tags$div(class = "success-box",
@@ -212,7 +224,7 @@ server <- function(input, output, session) {
                       ankiTable = character(),
                       feedback = character())
   
-
+  
   
   observeEvent(input$submit1, {
     shinyjs::show('harder')
@@ -229,6 +241,7 @@ server <- function(input, output, session) {
       shinyjs::show("sessionCounter")
       shinyjs::show('submitAnswers')
       shinyjs::show('reset')
+
       
       
       
@@ -418,6 +431,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$loginButton, {
     
+    # session$sendCustomMessage("Login", "hi")
     username = input$username
     password = input$password
     
@@ -490,7 +504,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$feedback, {
     shinyalert(html = TRUE, text = tagList(
-      textAreaInput(inputId = "feedbackInput", label = "Enter your feedback or suggestion here:", placeholder = "feedback...")
+      textAreaInput(inputId = "feedbackInput", label = "Enter your feedback or suggestion here:", placeholder = "Feedback...")
     ))
   })
   

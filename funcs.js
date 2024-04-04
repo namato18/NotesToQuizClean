@@ -91,6 +91,52 @@ Shiny.addCustomMessageHandler("Test", function(ind) {
     });
 });
 
+/*Shiny.addCustomMessageHandler("Login", function(hi) {
+    var body = document.body;
+    
+    // Change the background color
+    body.style.background = "black"; // Grey color
+    body.style.backgroundSize = "background-size: 100% 100%";
+    body.style.color = "white";
+  
+})*/
+
+      // Function to generate a random number within a range
+      function getRandomNumber(min, max) {
+          return Math.random() * (max - min) + min;
+      }
+
+      // Function to create a star element
+      function createStar() {
+          // Create a new div element for the star
+          var star = document.createElement('div');
+          star.className = 'star';
+
+          // Set random position for the star
+          var x = getRandomNumber(0, window.innerWidth);
+          var y = getRandomNumber(0, window.innerHeight);
+          star.style.left = x + 'px';
+          star.style.top = y + 'px';
+
+          // Add animation properties to the star
+          star.style.setProperty('--star-tail-length', getRandomNumber(100, 500) + 'px'); // Random tail length
+          star.style.setProperty('--fall-duration', getRandomNumber(5, 15) + 's'); // Random duration
+          star.style.setProperty('--fall-delay','0s'); // Random delay
+
+          // Append the star to the stars div
+          document.querySelector('.stars').appendChild(star);
+      }
+
+      // Function to generate stars
+      function generateStars(numStars) {
+          for (var i = 0; i < numStars; i++) {
+              createStar();
+          }
+      }
+
+      // Call generateStars function with desired number of stars
+      generateStars(100); // Adjust the number of stars as needed
+
 });
 
 
